@@ -1,0 +1,234 @@
+{% extends "components/base.html" %}
+{% load crispy_forms_tags %}
+{% load component_extras %}
+
+{% block title %}Components - IoT Lab Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Statistics Section -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-boxes display-4"></i>
+                    <h5 class="card-title mt-3">Total Components</h5>
+                    <p class="display-6 mb-0">{{ total_components }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle display-4"></i>
+                    <h5 class="card-title mt-3">Available</h5>
+                    <p class="display-6 mb-0">{{ available_components }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock display-4"></i>
+                    <h5 class="card-title mt-3">In Use</h5>
+                    <p class="display-6 mb-0">{{ in_use_components }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-tools display-4"></i>
+                    <h5 class="card-title mt-3">Under Maintenance</h5>
+                    <p class="display-6 mb-0">{{ maintenance_components }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Components List</h2>
+            <p class="text-muted mb-0">Manage and track your IoT lab components</p>
+        </div>
+        <div>
+            <a href="{% url 'component-create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Component
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="mb-4">
+        <div class="btn-group" role="group">
+            <a href="{% url 'component-list' %}" class="btn btn-outline-primary {% if not request.GET.status %}active{% endif %}">
+                <i class="bi bi-grid"></i> All
+            </a>
+            <a href="{% url 'component-list' %}?status=available" class="btn btn-outline-success {% if request.GET.status == 'available' %}active{% endif %}">
+                <i class="bi bi-check-circle"></i> Available
+            </a>
+            <a href="{% url 'component-list' %}?status=in_use" class="btn btn-outline-warning {% if request.GET.status == 'in_use' %}active{% endif %}">
+                <i class="bi bi-clock"></i> In Use
+            </a>
+            <a href="{% url 'component-list' %}?status=maintenance" class="btn btn-outline-danger {% if request.GET.status == 'maintenance' %}active{% endif %}">
+                <i class="bi bi-tools"></i> Maintenance
+            </a>
+        </div>
+    </div>
+
+    <!-- Components Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for component in components %}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ component.name }}</h5>
+                        <span class="badge {% if component.status == 'available' %}bg-success
+                                       {% elif component.status == 'in_use' %}bg-warning
+                                       {% elif component.status == 'maintenance' %}bg-danger
+                                       {% else %}bg-secondary{% endif %}">
+                            {{ component.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p class="card-text mb-2">
+                            <i class="bi bi-tag text-primary"></i> 
+                            <strong>Category:</strong> {{ component.category.name }}
+                        </p>
+                        <p class="card-text mb-2">
+                            <i class="bi bi-geo-alt text-danger"></i> 
+                            <strong>Location:</strong> {{ component.location }}
+                        </p>
+                        <p class="card-text mb-2">
+                            <i class="bi bi-hash text-info"></i> 
+                            <strong>Serial Number:</strong> {{ component.serial_number|default:"Not provided" }}
+                        </p>
+                        
+                        {% if component.status == 'in_use' and component.latest_checkout %}
+                        <div class="alert alert-warning py-2 mb-3">
+                            <p class="card-text mb-1">
+                                <i class="bi bi-person text-warning"></i>
+                                <strong>Checked Out By:</strong>
+                            </p>
+                            <p class="card-text mb-1 small">
+                                <i class="bi bi-envelope"></i> {{ component.latest_checkout.user_email }}
+                            </p>
+                            <p class="card-text mb-1 small">
+                                <i class="bi bi-phone"></i> {{ component.latest_checkout.user_phone|default:"No phone provided" }}
+                            </p>
+                            <p class="card-text mb-0 small">
+                                <i class="bi bi-calendar-event"></i> Expected Return: {{ component.latest_checkout.expected_return_date|date:"M d, Y" }}
+                            </p>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Quantity Progress Bar -->
+                        <div class="mt-3">
+                            <p class="card-text mb-1">
+                                <i class="bi bi-box text-success"></i> 
+                                <strong>Quantity Status:</strong>
+                            </p>
+                            <div class="progress" style="height: 20px;">
+                                {% with active=component|active_checkouts %}
+                                {% with in_use=active|checkout_quantity %}
+                                {% with available=component|available_quantity %}
+                                {% if available > 0 %}
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {% widthratio available component.quantity 100 %}%">
+                                    Available: {{ available }}
+                                </div>
+                                {% endif %}
+                                {% if in_use > 0 %}
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                     style="width: {% widthratio in_use component.quantity 100 %}%">
+                                    In Use: {{ in_use }}
+                                </div>
+                                {% endif %}
+                                {% if component.status == 'maintenance' %}
+                                <div class="progress-bar bg-danger" role="progressbar" 
+                                     style="width: 100%">
+                                    Maintenance: {{ component.quantity }}
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                                {% endwith %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <a href="{% url 'component-detail' component.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> Details
+                        </a>
+                        {% if user == component.created_by or user.is_staff %}
+                        <a href="{% url 'component-update' component.pk %}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        {% endif %}
+                        
+                        <!-- Status Change Buttons -->
+                        <div class="btn-group btn-group-sm">
+                            <form method="post" action="{% url 'component-status-update' component.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="available">
+                                <button type="submit" class="btn btn-sm btn-outline-success {% if component.status == 'available' %}active{% endif %}" 
+                                        {% if component.status == 'available' %}disabled{% endif %}>
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'component-status-update' component.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="in_use">
+                                <button type="submit" class="btn btn-sm btn-outline-warning {% if component.status == 'in_use' %}active{% endif %}"
+                                        {% if component.status == 'in_use' %}disabled{% endif %}>
+                                    <i class="bi bi-clock"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No components found.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %} 

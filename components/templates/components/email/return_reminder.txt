@@ -1,0 +1,17 @@
+Dear {{ checkout.checked_out_by.username }},
+
+This is a reminder that you have a component due for return in 2 days.
+
+Component Details:
+- Name: {{ component.name }}
+- Serial Number: {{ component.serial_number }}
+- Expected Return Date: {{ due_date|date:"F d, Y" }}
+
+Please ensure you return the component on or before the expected return date to avoid any late fees or penalties.
+
+If you need to extend your checkout period, please contact the lab administrator.
+
+Thank you for your cooperation.
+
+Best regards,
+IoT Lab Management System 

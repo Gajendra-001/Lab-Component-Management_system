@@ -1,0 +1,83 @@
+{% extends "components/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Checkout {{ component.name }} - IoT Lab Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Checkout {{ component.name }}</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Component Details Section -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Component Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Category:</strong> {{ component.category.name }}</p>
+                                <p><strong>Serial Number:</strong> {{ component.serial_number|default:"Not provided" }}</p>
+                                <p><strong>Location:</strong> {{ component.location }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Available Quantity:</strong> {{ component.quantity }}</p>
+                                <p><strong>Status:</strong> 
+                                    <span class="badge bg-success">{{ component.get_status_display }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Checkouter Information -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Checkouter Information</h5>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    {{ form.user_name|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.quantity|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.expected_return_date|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.user_branch|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.user_phone|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.user_email|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.notes|as_crispy_field }}
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'component-detail' component.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-box-arrow-right"></i> Checkout Component
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

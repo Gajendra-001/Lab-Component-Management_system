@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .component-details {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Component Return Reminder</h2>
+        </div>
+
+        <p>Dear {{ checkout.checked_out_by.username }},</p>
+
+        <p>This is a reminder that you have a component due for return in 2 days.</p>
+
+        <div class="component-details">
+            <h3>Component Details:</h3>
+            <ul>
+                <li><strong>Name:</strong> {{ component.name }}</li>
+                <li><strong>Serial Number:</strong> {{ component.serial_number }}</li>
+                <li><strong>Expected Return Date:</strong> {{ due_date|date:"F d, Y" }}</li>
+            </ul>
+        </div>
+
+        <p>Please ensure you return the component on or before the expected return date to avoid any late fees or penalties.</p>
+
+        <p>If you need to extend your checkout period, please contact the lab administrator.</p>
+
+        <p>Thank you for your cooperation.</p>
+
+        <div class="footer">
+            <p>Best regards,<br>IoT Lab Management System</p>
+        </div>
+    </div>
+</body>
+</html> 

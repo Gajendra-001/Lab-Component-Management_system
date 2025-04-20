@@ -1,0 +1,265 @@
+{% extends "components/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ component.name }} - IoT Lab Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ component.name }}</h2>
+                    <span class="badge {% if component.status == 'available' %}bg-success{% elif component.status == 'in_use' %}bg-warning{% else %}bg-danger{% endif %} fs-6"
+                          {% if component.status == 'in_use' %}
+                          data-bs-toggle="modal" 
+                          data-bs-target="#checkoutDetailsModal" 
+                          style="cursor: pointer;"
+                          {% endif %}>
+                        {{ component.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% if component.image %}
+                    <img src="{{ component.image.url }}" alt="{{ component.name }}" class="img-fluid mb-3">
+                    {% endif %}
+
+                    <!-- Quantity Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-info mb-3">
+                                <h5 class="alert-heading mb-0">
+                                    <i class="bi bi-boxes"></i> Total Components: <strong>{{ component.quantity }} pieces</strong>
+                                </h5>
+                            </div>
+                            <h5 class="mb-3">Quantity Distribution</h5>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center py-2">
+                                            <h6 class="card-title mb-0">Available</h6>
+                                            <p class="display-6 mb-0">{{ available_quantity }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-warning text-white">
+                                        <div class="card-body text-center py-2">
+                                            <h6 class="card-title mb-0">In Use</h6>
+                                            <p class="display-6 mb-0">{{ in_use_quantity }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-danger text-white">
+                                        <div class="card-body text-center py-2">
+                                            <h6 class="card-title mb-0">Maintenance</h6>
+                                            <p class="display-6 mb-0">{{ maintenance_quantity }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Progress Bar -->
+                            <div class="mt-3">
+                                <div class="progress" style="height: 25px;">
+                                    {% if available_quantity > 0 %}
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {% widthratio available_quantity component.quantity 100 %}%">
+                                        Available: {{ available_quantity }}
+                                    </div>
+                                    {% endif %}
+                                    {% if in_use_quantity > 0 %}
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                         style="width: {% widthratio in_use_quantity component.quantity 100 %}%">
+                                        In Use: {{ in_use_quantity }}
+                                    </div>
+                                    {% endif %}
+                                    {% if maintenance_quantity > 0 %}
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                         style="width: {% widthratio maintenance_quantity component.quantity 100 %}%">
+                                        Maintenance: {{ maintenance_quantity }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Category:</strong> {{ component.category.name }}</p>
+                            <p><strong>Serial Number:</strong> {{ component.serial_number|default:"Not provided" }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if component.status == 'available' %}bg-success
+                                                   {% elif component.status == 'in_use' %}bg-warning
+                                                   {% elif component.status == 'maintenance' %}bg-danger
+                                                   {% else %}bg-secondary{% endif %}">
+                                    {{ component.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>Location:</strong> {{ component.location }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Purchase Date:</strong> {{ component.purchase_date }}</p>
+                            <p><strong>Last Maintenance:</strong> {{ component.last_maintenance_date|default:"Not recorded" }}</p>
+                            <p><strong>Next Maintenance:</strong> {{ component.next_maintenance_date|default:"Not scheduled" }}</p>
+                            <p><strong>Created By:</strong> {{ component.created_by.username }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <h5>Description</h5>
+                        <p>{{ component.description }}</p>
+                    </div>
+
+                    <div class="mt-3">
+                        {% if user == component.created_by or user.is_staff %}
+                        <a href="{% url 'component-update' component.pk %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Edit Component
+                        </a>
+                        <a href="{% url 'component-delete' component.pk %}" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete Component
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Maintenance History</h3>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'add-maintenance-log' component.pk %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus"></i> Add Maintenance Log
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if maintenance_logs %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Performed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in maintenance_logs %}
+                                <tr>
+                                    <td>{{ log.maintenance_date }}</td>
+                                    <td>{{ log.description }}</td>
+                                    <td>{{ log.performed_by.username }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No maintenance logs recorded.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="mb-0">Checkout History</h3>
+                </div>
+                <div class="card-body">
+                    {% if checkout_history %}
+                    <div class="list-group">
+                        {% for checkout in checkout_history %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Checked out by {{ checkout.checked_out_by.username }}</h6>
+                                <small>{{ checkout.checkout_date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">
+                                <strong>Branch:</strong> {{ checkout.user_branch }}<br>
+                                <strong>Phone:</strong> {{ checkout.user_phone }}<br>
+                                <strong>Email:</strong> {{ checkout.user_email }}
+                            </p>
+                            <p class="mb-1">Expected return: {{ checkout.expected_return_date|date:"M d, Y" }}</p>
+                            {% if checkout.actual_return_date %}
+                            <small class="text-success">Returned on {{ checkout.actual_return_date|date:"M d, Y" }}</small>
+                            {% else %}
+                            <div class="mt-2">
+                                <a href="{% url 'return-component' component.id %}?checkout_id={{ checkout.id }}" class="btn btn-warning btn-sm">Return This Component</a>
+                            </div>
+                            {% endif %}
+                            {% if checkout.notes %}
+                            <div class="mt-2">
+                                <small class="text-muted"><strong>Notes:</strong> {{ checkout.notes }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No checkout history.</p>
+                    {% endif %}
+
+                    {% if component.status == 'available' and component.quantity > 0 %}
+                    <div class="mt-3">
+                        <a href="{% url 'checkout-component' component.pk %}" class="btn btn-success w-100">
+                            <i class="bi bi-box-arrow-right"></i> New Checkout
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout Details Modal -->
+{% if component.status == 'in_use' and component.checkouts.exists %}
+    {% with latest_checkout=component.checkouts.first %}
+    <div class="modal fade" id="checkoutDetailsModal" tabindex="-1" aria-labelledby="checkoutDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="checkoutDetailsModalLabel">Current Checkout Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="border-bottom pb-2">Checkouter Information</h6>
+                        <p><strong>Name:</strong> {{ latest_checkout.checked_out_by.get_full_name|default:latest_checkout.checked_out_by.username }}</p>
+                        <p><strong>Branch:</strong> {{ latest_checkout.user_branch|default:"Not specified" }}</p>
+                        <p><strong>Phone:</strong> {{ latest_checkout.user_phone|default:"Not provided" }}</p>
+                        <p><strong>Email:</strong> {{ latest_checkout.user_email|default:"Not provided" }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="border-bottom pb-2">Checkout Details</h6>
+                        <p><strong>Checkout Date:</strong> {{ latest_checkout.checkout_date|date:"M d, Y" }}</p>
+                        <p><strong>Expected Return:</strong> {{ latest_checkout.expected_return_date|date:"M d, Y" }}</p>
+                        <p><strong>Quantity:</strong> {{ latest_checkout.quantity }}</p>
+                        {% if latest_checkout.notes %}
+                        <p><strong>Notes:</strong> {{ latest_checkout.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize all tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+{% endblock %} 

@@ -1,0 +1,95 @@
+{% extends "components/base.html" %}
+
+{% block title %}IoT Lab Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <h1 class="display-4">Welcome to IoT Lab</h1>
+        <p class="lead">Manage and track your IoT components efficiently</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-grid"></i> Total Components
+                </h5>
+                <p class="card-text display-6">{{ total_components }}</p>
+                <a href="{% url 'component-list' %}" class="btn btn-primary">View All</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-check-circle"></i> Available Components
+                </h5>
+                <p class="card-text display-6">{{ available_components }}</p>
+                <a href="{% url 'component-list' %}?status=available" class="btn btn-success">View Available</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-tools"></i> Components in Maintenance
+                </h5>
+                <p class="card-text display-6">{{ maintenance_components }}</p>
+                <a href="{% url 'component-list' %}?status=maintenance" class="btn btn-warning">View in Maintenance</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-clock-history"></i> Recent Checkouts
+                </h5>
+                <div class="list-group">
+                    {% for checkout in recent_checkouts %}
+                    <a href="{% url 'component-detail' checkout.component.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ checkout.component.name }}</h6>
+                            <small>{{ checkout.checkout_date|date:"M d, Y" }}</small>
+                        </div>
+                        <small>Checked out by: {{ checkout.checked_out_by.username }}</small>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted">No recent checkouts</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-wrench"></i> Recent Maintenance
+                </h5>
+                <div class="list-group">
+                    {% for log in recent_maintenance %}
+                    <a href="{% url 'component-detail' log.component.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ log.component.name }}</h6>
+                            <small>{{ log.maintenance_date|date:"M d, Y" }}</small>
+                        </div>
+                        <small>Maintained by: {{ log.performed_by.username }}</small>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted">No recent maintenance records</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

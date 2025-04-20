@@ -1,0 +1,147 @@
+{% extends 'components/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Inventory</h2>
+    
+    <!-- Search Bar -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="GET" action="{% url 'search-components' %}" class="search-form">
+                <div class="input-group shadow-sm">
+                    <input type="text" id="searchInput" name="q" class="form-control form-control-lg" 
+                           placeholder="Search by name or category..." 
+                           value="{{ search_query|default:'' }}"
+                           style="border-radius: 0.5rem 0 0 0.5rem;">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit" id="searchButton" style="border-radius: 0 0.5rem 0.5rem 0;">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+                <div id="searchSuggestions" class="list-group mt-2 shadow-sm" style="display: none; border-radius: 0.5rem;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="table-responsive shadow-sm">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+                {% for component in components %}
+                <tr>
+                    <td>{{ component.name }}</td>
+                    <td>{{ component.category.name }}</td>
+                    <td>{{ component.quantity }}</td>
+                    <td>
+                        <span class="badge {% if component.status == 'available' %}bg-success{% elif component.status == 'in_use' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ component.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'component-detail' component.pk %}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{% url 'component-update' component.pk %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="bi bi-search" style="font-size: 2rem;"></i>
+                        <p class="mt-2">No components found.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        let searchTimeout;
+        const searchInput = $('#searchInput');
+        const searchSuggestions = $('#searchSuggestions');
+        const inventoryTableBody = $('#inventoryTableBody');
+
+        // Function to handle search
+        function performSearch(query) {
+            $.ajax({
+                url: '/components/search/',
+                data: { q: query },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(data) {
+                    if (data.components && data.components.length > 0) {
+                        searchSuggestions.empty();
+                        data.components.forEach(component => {
+                            searchSuggestions.append(`
+                                <a href="#" class="list-group-item list-group-item-action" 
+                                   data-id="${component.id}">
+                                    <i class="bi bi-box"></i> ${component.name} 
+                                    <span class="text-muted">(${component.category})</span>
+                                </a>
+                            `);
+                        });
+                        searchSuggestions.show();
+                    } else {
+                        searchSuggestions.hide();
+                    }
+                }
+            });
+        }
+
+        // Handle input in search bar
+        searchInput.on('input', function() {
+            clearTimeout(searchTimeout);
+            const query = $(this).val().trim();
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, 300);
+            } else {
+                searchSuggestions.hide();
+            }
+        });
+
+        // Handle suggestion clicks
+        searchSuggestions.on('click', 'a', function(e) {
+            e.preventDefault();
+            const componentId = $(this).data('id');
+            window.location.href = `/components/component/${componentId}/`;
+        });
+
+        // Handle form submission
+        $('.search-form').on('submit', function(e) {
+            const query = searchInput.val().trim();
+            if (!query) {
+                e.preventDefault();
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#searchInput, #searchSuggestions').length) {
+                searchSuggestions.hide();
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 
