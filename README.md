@@ -3,9 +3,6 @@
 ## 🌟 Overview
 A robust and scalable web application designed to streamline the management of IoT laboratory components, inventory, and maintenance records. This system provides a comprehensive solution for educational institutions, research labs, and organizations working with IoT devices.
 
-## 🚀 Live Demo
-Experience the application live at: [Your AWS Instance IP]
-
 ## ✨ Key Features
 
 ### Component Management
