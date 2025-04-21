@@ -1,4 +1,4 @@
-Dear {{ checkout.checked_out_by.username }},
+Dear {{ checkout.display_name }},
 
 This is a reminder that you have a component due for return in 2 days.
 

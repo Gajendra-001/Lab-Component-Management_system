@@ -43,7 +43,7 @@ class ComponentCheckoutForm(forms.ModelForm):
     
     class Meta:
         model = ComponentCheckout
-        fields = ['quantity', 'user_branch', 'user_phone', 'user_email', 'expected_return_date', 'notes']
+        fields = ['user_name', 'quantity', 'user_branch', 'user_phone', 'user_email', 'expected_return_date', 'notes']
         widgets = {
             'expected_return_date': forms.DateInput(attrs={'type': 'date'}),
         }

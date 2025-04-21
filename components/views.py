@@ -11,6 +11,9 @@ from .filters import ComponentFilter
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 @login_required
 def home(request):
@@ -231,13 +234,40 @@ def checkout_component(request, pk):
             available_quantity = component.quantity - currently_checked_out
             
             if quantity_to_checkout <= available_quantity:
-                # Save the checkout first
+                # Get entered name from form or fallback to user's name
+                entered_name = form.cleaned_data.get('user_name') or request.user.get_full_name() or request.user.username
+                
+                # Save the display name
+                checkout.display_name = entered_name
+                
+                # Save the checkout
                 checkout.save()
                 
                 # Update status based on available quantity
                 if available_quantity - quantity_to_checkout == 0:
                     component.status = 'in_use'
                     component.save()
+                
+                # Prepare email content
+                context = {
+                    'component': component,
+                    'quantity': quantity_to_checkout,
+                    'user_name': entered_name,
+                    'expected_return_date': checkout.expected_return_date,
+                }
+                
+                # Render email templates
+                html_message = render_to_string('components/email/checkout_confirmation.html', context)
+                plain_message = strip_tags(html_message)
+                
+                # Send email with user's name in the from field
+                send_mail(
+                    subject=f'Component Checkout Confirmation - {component.name}',
+                    message=plain_message,
+                    from_email=(entered_name, 'dhaked1415@gmail.com'),  # Use entered name here too
+                    recipient_list=[checkout.user_email],
+                    html_message=html_message,
+                )
                 
                 messages.success(request, f'Successfully checked out {quantity_to_checkout} {component.name}(s)')
                 return redirect('component-list')

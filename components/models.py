@@ -62,6 +62,7 @@ class ComponentCheckout(models.Model):
     user_branch = models.CharField(max_length=100, null=True, blank=True)
     user_phone = models.CharField(max_length=15, null=True, blank=True)
     user_email = models.EmailField(null=True, blank=True)
+    display_name = models.CharField(max_length=100, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):

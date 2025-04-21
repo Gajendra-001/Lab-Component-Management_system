@@ -17,6 +17,9 @@ class Command(BaseCommand):
         ).select_related('component', 'checked_out_by')
 
         for checkout in checkouts:
+            # Get display name from checkout
+            display_name = checkout.display_name or checkout.checked_out_by.get_full_name() or checkout.checked_out_by.username
+            
             # Prepare email content
             subject = f'Reminder: Component Return Due in 2 Days'
             context = {
@@ -24,6 +27,8 @@ class Command(BaseCommand):
                 'checkout': checkout,
                 'due_date': checkout.expected_return_date,
             }
+            
+            # Render email templates
             message = render_to_string('components/email/return_reminder.txt', context)
             html_message = render_to_string('components/email/return_reminder.html', context)
 
@@ -31,7 +36,7 @@ class Command(BaseCommand):
             send_mail(
                 subject=subject,
                 message=message,
-                from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+                from_email=(display_name, 'dhaked1415@gmail.com'),  # Use display name in from field
                 recipient_list=[checkout.user_email],
                 html_message=html_message,
                 fail_silently=False,
