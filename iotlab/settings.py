@@ -147,9 +147,9 @@ EMAIL_BACKEND = 'components.email_backend.CustomEmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'dhaked1415@gmail.com'
-EMAIL_HOST_PASSWORD = 'uofo ummg enfd zzcq'
-DEFAULT_FROM_EMAIL = 'dhaked1415@gmail.com'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = ''
 
 # SSL Certificate settings
 ssl._create_default_https_context = ssl._create_unverified_context
