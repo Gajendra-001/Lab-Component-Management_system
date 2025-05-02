@@ -12,7 +12,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     {% load static %}
-    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/lab-manager/static/css/main.css">
+    {% get_media_prefix as media_prefix %}
+    <img src="{{ media_prefix }}components/{{ component.image.name }}">
+
+
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark">

@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import ssl
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +27,10 @@ SECRET_KEY = 'django-insecure-ve!7bn^vwv)m$j9476bkmjd(bq&hs!9m7l-hozh6+z0r48rp)9
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
+FORCE_SCRIPT_NAME = '/lab-manager'
+STATIC_URL = '/static/'
+MEDIA_URL = '/lab-manager/media/'
+USE_X_FORWARDED_HOST = True
 
 # Application definition
 
@@ -118,19 +121,21 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+STATIC_URL = '/lab-manager/static/'
+
 STATICFILES_DIRS = [
     BASE_DIR / 'components' / 'static',
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
 # Media files configuration
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/lab-manager/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 # Crispy Forms configuration
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
